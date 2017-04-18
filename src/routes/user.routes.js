@@ -7,6 +7,7 @@ const router = new Router();
 
 router
 	.prefix(basePath)
+	.get('/', UserController.getUsers)
 	.get('/:id', assertToken, assertUser, UserController.findById)
 	.put('/:id', assertToken, assertUser, UserController.updateById)
 	.delete('/:id', assertToken, assertUser, UserController.removeById);
