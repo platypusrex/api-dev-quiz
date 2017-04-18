@@ -8,6 +8,12 @@ const CategorySchema = new Schema({
 	},
 	displayName: {
 		type: String
+	},
+	icon: {
+		type: String
+	},
+	color: {
+		type: String
 	}
 });
 
@@ -20,19 +26,19 @@ const GameCategorySchema = new Schema({
 	javascript: CategorySchema,
 	python: CategorySchema,
 	php: CategorySchema,
-	swift: CategorySchema,
+	elixir: CategorySchema,
 	objectiveC: CategorySchema,
 	ruby: CategorySchema,
 	go: CategorySchema,
 	sql: CategorySchema,
 	scala: CategorySchema,
-	lisp: CategorySchema,
+	elm: CategorySchema,
 	haskell: CategorySchema,
 	perl: CategorySchema,
-	r: CategorySchema,
-	matlab: CategorySchema,
-	scratch: CategorySchema,
-	bash: CategorySchema
+	erlang: CategorySchema,
+	clojure: CategorySchema,
+	css: CategorySchema,
+	html: CategorySchema
 });
 
 export default mongoose.model('GameCategories', GameCategorySchema);
