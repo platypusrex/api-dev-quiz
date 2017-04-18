@@ -63,6 +63,10 @@ const UserSchema = new Schema({
 	games: [UserGamesSchema]
 });
 
+UserSchema.index({
+	userName: 'text'
+});
+
 UserSchema.pre('save', function(next) {
 	const now = new Date();
 	this.lastActive = now;

@@ -1,6 +1,10 @@
 import User from '../models/user.model';
 import { hashPassword } from '../utils/hash.util';
 
+function escapeRegex(text) {
+	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
 class UserController {
 	async findById(ctx) {
 		const user = await User.findById(ctx.params.id);
@@ -40,6 +44,21 @@ class UserController {
 
 		ctx.assert(user, 404, 'Error removing user');
 		ctx.body = `Successfully removed user with id: ${ctx.params.id}`;
+	}
+
+	async getUsers(ctx) {
+		if(ctx.request.query.search) {
+			const regex = new RegExp(escapeRegex(ctx.request.query.search), 'gi');
+			const users = await User.find(
+				{$or: [
+						{ $text: { $search: ctx.request.query.search }},
+						{ userName: { $regex: regex }}
+				]},
+				'userName title _id'
+			);
+
+			ctx.body = users;
+		}
 	}
 }
 
