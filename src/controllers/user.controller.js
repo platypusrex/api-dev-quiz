@@ -1,8 +1,25 @@
 import User from '../models/user.model';
+import * as _ from 'lodash';
 import { hashPassword } from '../utils/hash.util';
 
 function escapeRegex(text) {
 	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+}
+
+function flattenFollowingArray(arr) {
+	return arr.map(val => { return val.userId});
+}
+
+async function checkForFollowingUpdate(id, user) {
+	const currentUser = await User.findById(id);
+
+	if(user.following && user.following.length > currentUser.following.length) {
+		const id = _.difference(flattenFollowingArray(user.following), flattenFollowingArray(currentUser.following))[0];
+		const followed = await User.findById(id);
+		followed.followers.push({userId: id});
+
+		await User.findByIdAndUpdate(`${id}`, followed, { new: true });
+	}
 }
 
 class UserController {
@@ -15,6 +32,7 @@ class UserController {
 
 	async updateById(ctx) {
 		try {
+			checkForFollowingUpdate(ctx.params.id, ctx.request.body);
 			const user = await User.findByIdAndUpdate(`${ctx.params.id}`, ctx.request.body, { new: true });
 
 			ctx.assert(user, 404, 'User not found');
