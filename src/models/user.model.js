@@ -14,6 +14,12 @@ const LocationSchema = new Schema({
 	country: String
 });
 
+const FollowerSchema = new Schema({
+	userId: String,
+	userName: String,
+	title: String
+});
+
 const UserSchema = new Schema({
 	email: {
 		type: String,
@@ -46,20 +52,8 @@ const UserSchema = new Schema({
 	lastActive: {
 		type: Date
 	},
-	following: [
-		{
-			userId: {
-				type: String
-			}
-		}
-	],
-	followers: [
-		{
-			userId: {
-				type: String
-			}
-		}
-	],
+	following: [FollowerSchema],
+	followers: [FollowerSchema],
 	games: [UserGamesSchema]
 });
 

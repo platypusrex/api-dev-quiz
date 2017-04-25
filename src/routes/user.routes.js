@@ -9,6 +9,7 @@ router
 	.prefix(basePath)
 	.get('/', UserController.getUsers)
 	.get('/:id', assertToken, assertUser, UserController.findById)
+	.get('/profile/:id', assertToken, UserController.findById)
 	.put('/:id', assertToken, assertUser, UserController.updateById)
 	.delete('/:id', assertToken, assertUser, UserController.removeById);
 

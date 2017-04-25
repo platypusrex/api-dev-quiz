@@ -1,4 +1,5 @@
 import User from '../models/user.model';
+import { options } from '../config';
 import * as _ from 'lodash';
 import { hashPassword } from '../utils/hash.util';
 
@@ -15,16 +16,16 @@ async function checkForFollowingUpdate(id, user) {
 
 	if(user.following && user.following.length > currentUser.following.length) {
 		const id = _.difference(flattenFollowingArray(user.following), flattenFollowingArray(currentUser.following))[0];
-		const followed = await User.findById(id);
-		followed.followers.push({userId: id});
+		const followedUser = await User.findById(id);
+		followedUser.followers.push({userId: currentUser._id, userName: currentUser.userName, title: currentUser.title});
 
-		await User.findByIdAndUpdate(`${id}`, followed, { new: true });
+		await User.findByIdAndUpdate(`${id}`, followedUser, { new: true });
 	}
 }
 
 class UserController {
 	async findById(ctx) {
-		const user = await User.findById(ctx.params.id);
+		const user = await User.findById(ctx.params.id, options.standard);
 
 		ctx.assert(user, 404, 'User not found');
 		ctx.body = user;
@@ -67,13 +68,12 @@ class UserController {
 	async getUsers(ctx) {
 		if(ctx.request.query.search) {
 			const regex = new RegExp(escapeRegex(ctx.request.query.search), 'gi');
-			const users = await User.find(
-				{$or: [
+			const users = await User.find({
+				$or: [
 						{ $text: { $search: ctx.request.query.search }},
 						{ userName: { $regex: regex }}
-				]},
-				'userName title _id'
-			);
+				]
+			}, options.userSearch);
 
 			ctx.body = users;
 		}
