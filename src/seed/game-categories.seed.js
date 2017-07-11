@@ -1,6 +1,6 @@
 import GameCategories from '../models/game-categories.model';
 
-const gameCategories = {
+export const gameCategories = {
 	java: {
 		type: 'java',
 		displayName: 'Java',
@@ -121,6 +121,10 @@ const gameCategories = {
 		color: 'rgb(241, 102, 42)'
 	}
 };
+
+export function getNamespaces() {
+	return Object.keys(gameCategories);
+}
 
 export function seedGameCategories() {
 	GameCategories.findOne().remove().exec();
