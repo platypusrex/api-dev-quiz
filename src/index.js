@@ -6,11 +6,13 @@ import mongoose from 'mongoose';
 import router from './routes';
 import errorHandler from './middleware/error-handler.middleware';
 import { seedGameCategories } from './seed/game-categories.seed';
+import { seedChatRooms } from './seed/chat.seed';
 import { initializeChatRooms } from './utils/chat-rooms.util';
 import { port, dbLocation } from './config';
 
 mongoose.connect(dbLocation);
 seedGameCategories();
+seedChatRooms();
 mongoose.connection.on('error', console.error);
 
 const app = new Koa();

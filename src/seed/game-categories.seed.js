@@ -122,10 +122,6 @@ export const gameCategories = {
 	}
 };
 
-export function getNamespaces() {
-	return Object.keys(gameCategories);
-}
-
 export function seedGameCategories() {
 	GameCategories.findOne().remove().exec();
 

@@ -6,7 +6,7 @@ const ChatSchema = new Schema({
 	createdOn: Date,
 	message: String,
 	userName: String,
-	nameSpace: String
+	roomName: String
 });
 
 ChatSchema.pre('save', function(next) {
