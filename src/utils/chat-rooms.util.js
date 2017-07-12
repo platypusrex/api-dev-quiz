@@ -1,5 +1,6 @@
 import IO from 'koa-socket';
 import { gameCategories } from '../seed/game-categories.seed';
+import Chat from '../models/chat.model';
 
 export function initializeChatRooms(app) {
 	const chatRooms = Object.keys(gameCategories);
@@ -12,15 +13,18 @@ export function initializeChatRooms(app) {
 		chatRoom.roomName.on('connection', ctx => {
 			const socket = ctx.socket;
 			console.log('someone connect: %s', socket.id);
-			const bot = {
-				userName: 'dev-bot'
-			};
 
 			socket.on('joinRoom', ctx => {
-				socket.emit('message', {message: `Welcome to the ${ctx} chat room!`, user: bot, date: new Date()});
+				socket.emit('message', {
+					message: `Welcome to the ${ctx} chat room!`,
+					userName: 'dev-bot',
+					createdOn: new Date()
+				});
 			});
 
-			socket.on('newMessage', ctx => {
+			socket.on('newMessage', async ctx => {
+				const newChat = new Chat(ctx);
+				await newChat.save();
 				chatRoom.roomName.broadcast('message', ctx);
 			});
 
@@ -34,7 +38,11 @@ export function initializeChatRooms(app) {
 			});
 
 			socket.on('leaveRoom', ctx => {
-				chatRoom.roomName.broadcast('message', {message: `${ctx} has left the room.`, user: bot, date: new Date()});
+				chatRoom.roomName.broadcast('message', {
+					message: `${ctx} has left the room.`,
+					userName: 'dev-bot',
+					createOn: new Date()
+				});
 			});
 
 			socket.on('disconnect', ctx => {
