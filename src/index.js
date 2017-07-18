@@ -8,6 +8,7 @@ import errorHandler from './middleware/error-handler.middleware';
 import { seedGameCategories } from './seed/game-categories.seed';
 import { seedChatRooms } from './seed/chat.seed';
 import { initializeChatRooms } from './utils/chat-rooms.util';
+import { initialGameRooms } from './utils/game-rooms.util';
 import { port, dbLocation } from './config';
 
 mongoose.connect(dbLocation);
@@ -25,6 +26,7 @@ app
 
 router(app);
 initializeChatRooms(app);
+initialGameRooms(app);
 
 app.listen(port, () => console.log(`The server is running at http://localhost:${port}/`));
 

@@ -1,4 +1,4 @@
-import IO from 'koa-socket';
+import IO from 'koa-socket-2';
 import { gameCategories } from '../seed/game-categories.seed';
 import Chat from '../models/chat.model';
 
