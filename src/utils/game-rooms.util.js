@@ -13,7 +13,8 @@ const gameRoomEvents = {
 	gameCreated: 'gameCreated',
 	gameCreatedSuccess: 'gameCreatedSuccess',
 	gameStarted: 'gameStarted',
-	gameStartedSuccess: 'gameStartedSuccess'
+	gameStartedSuccess: 'gameStartedSuccess',
+	gameEnded: 'gameEnded'
 };
 
 
@@ -62,7 +63,10 @@ export function initialGameRooms(app) {
 			console.log(`game room ${data.room} joined by ${data.players[1].userName}`);
 		});
 
-		gameRoom.roomName.on(gameRoomEvents.leaveRoom, ctx => {
+		gameRoom.roomName.on(gameRoomEvents.leaveRoom, async (ctx, data) => {
+			await Game.findByIdAndRemove(data.id);
+			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameEnded, data.userName);
+			ctx.socket.leave(data.room);
 			gameRoom.roomName.broadcast(gameRoomEvents.message, {
 				message: `${ctx.data} has left the room.`,
 				userName: 'dev-bot',
