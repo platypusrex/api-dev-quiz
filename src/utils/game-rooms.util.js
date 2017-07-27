@@ -6,7 +6,7 @@ const gameRoomEvents = {
 	connection: 'connection',
 	joinRoom: 'joinRoom',
 	message: 'message',
-	createGameMulti: 'createGameMulti',
+	createTwoPlayerGame: 'createTwoPlayerGame',
 	createGameSingle: 'createGameSingle',
 	leaveRoom: 'leaveRoom',
 	disconnect: 'disconnect',
@@ -39,7 +39,7 @@ export function initialGameRooms(app) {
 			});
 		});
 
-		gameRoom.roomName.on(gameRoomEvents.createGameMulti, async (ctx, data) => {
+		gameRoom.roomName.on(gameRoomEvents.createTwoPlayerGame, async (ctx, data) => {
 			const game = await Game.findOne({type: data.type, status: 'pending'});
 
 			if(game) {
