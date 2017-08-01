@@ -8,12 +8,14 @@ const gameRoomEvents = {
 	message: 'message',
 	createTwoPlayerGame: 'createTwoPlayerGame',
 	createGameSingle: 'createGameSingle',
+	cancelTwoPlayerGame: 'cancelTwoPlayerGame',
 	leaveRoom: 'leaveRoom',
 	disconnect: 'disconnect',
 	gameCreated: 'gameCreated',
 	gameCreatedSuccess: 'gameCreatedSuccess',
 	gameStarted: 'gameStarted',
 	gameStartedSuccess: 'gameStartedSuccess',
+	gameCanceled: 'gameCanceled',
 	gameEnded: 'gameEnded'
 };
 
@@ -63,14 +65,28 @@ export function initialGameRooms(app) {
 			console.log(`game room ${data.room} joined by ${data.players[1].userName}`);
 		});
 
+		gameRoom.roomName.on(gameRoomEvents.cancelTwoPlayerGame, async (ctx, data) => {
+			await Game.findByIdAndRemove(data.id);
+			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameCanceled, {
+				userName: data.userName,
+				message: gameRoomEvents.gameCanceled,
+				createdOn: new Date()
+			});
+			ctx.socket.leave(data.room);
+		});
+
 		gameRoom.roomName.on(gameRoomEvents.leaveRoom, async (ctx, data) => {
 			await Game.findByIdAndRemove(data.id);
-			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameEnded, data.userName);
+			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameEnded, {
+				userName: data.userName,
+				message: `${data.userName} left the game`,
+				createdOn: new Date()
+			});
 			ctx.socket.leave(data.room);
 			gameRoom.roomName.broadcast(gameRoomEvents.message, {
-				message: `${ctx.data} has left the room.`,
+				message: `${ctx.data} left the room.`,
 				userName: 'dev-bot',
-				createOn: new Date()
+				createdOn: new Date()
 			});
 		});
 
