@@ -1,19 +1,7 @@
 import IO from 'koa-socket-2';
 import { gameCategories } from '../seed/game-categories.seed';
+import { chatRoomEvents } from "../constants/chat-room.constants";
 import Chat from '../models/chat.model';
-
-const chatRoomEvents = {
-	connection: 'connection',
-	joinRoom: 'joinRoom',
-	message: 'message',
-	newMessage: 'newMessage',
-	typing: 'typing',
-	userTyping: 'userTyping',
-	userStopTyping: 'userStopTyping',
-	stopTyping: 'stopTyping',
-	leaveRoom: 'leaveRoom',
-	disconnect: 'disconnect'
-};
 
 export function initializeChatRooms(app) {
 	const chatRooms = Object.keys(gameCategories);
