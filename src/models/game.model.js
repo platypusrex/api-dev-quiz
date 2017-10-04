@@ -10,6 +10,7 @@ const playerSchema = new Schema({
 
 const gameSchema = new Schema({
 	room: String,
+	category: String,
 	type: String,
 	status: String,
 	createdOn: Date,
