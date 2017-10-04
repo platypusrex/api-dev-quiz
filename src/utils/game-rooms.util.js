@@ -2,23 +2,53 @@ import IO from 'koa-socket-2';
 import Game from '../models/game.model';
 import { gameCategories } from '../seed/game-categories.seed';
 
-const gameRoomEvents = {
+export const gameStatus = {
+	pending: 'pending',
+	started: 'started',
+	cancelled: 'cancelled',
+	timedOut: 'timedOut'
+};
+
+export const gameType = {
+	onePlayer: 'onePlayer',
+	twoPlayer: 'twoPlayer'
+};
+
+export const playerStatus = {
+	joined: 'joined',
+	cancelled: 'cancelled'
+};
+
+const defaultGameRoomEvents = {
 	connection: 'connection',
 	joinRoom: 'joinRoom',
 	message: 'message',
-	createTwoPlayerGame: 'createTwoPlayerGame',
-	createGameSingle: 'createGameSingle',
-	cancelTwoPlayerGame: 'cancelTwoPlayerGame',
 	leaveRoom: 'leaveRoom',
 	disconnect: 'disconnect',
-	gameCreated: 'gameCreated',
-	gameCreatedSuccess: 'gameCreatedSuccess',
-	gameStarted: 'gameStarted',
-	gameStartedSuccess: 'gameStartedSuccess',
-	gameCanceled: 'gameCanceled',
-	gameEnded: 'gameEnded'
 };
 
+const onePlayerGameEvents = {
+	createOnePlayerGame: 'createOnePlayerGame',
+	cancelOnePlayerGame: 'cancelOnePlayerGame',
+	onePlayerGameCreated: 'onePlayerGameCreated',
+	onePlayerGameCreatedSuccess: 'onePlayerGameCreatedSuccess',
+	onePlayerGameCanceled: 'onePlayerGameCanceled',
+	onePlayerGameEnded: 'onePlayerGameEndedSuccess'
+};
+
+const twoPlayerGameEvents = {
+	createTwoPlayerGame: 'createTwoPlayerGame',
+	cancelTwoPlayerGame: 'cancelTwoPlayerGame',
+	twoPlayerGameCreated: 'twoPlayerGameCreated',
+	twoPlayerGameCreatedSuccess: 'twoPlayerGameCreatedSuccess',
+	twoPlayerGameStarted: 'twoPlayerGameStarted',
+	twoPlayerGameStartedSuccess: 'twoPlayerGameStartedSuccess',
+	twoPlayerGameCanceled: 'twoPlayerGameCanceled',
+	twoPlayerGameEnded: 'twoPlayerGameEndedSuccess',
+	leaveTwoPlayerGameRoom: 'leaveTwoPlayerGameRoom'
+};
+
+const gameRoomEvents = Object.assign({}, defaultGameRoomEvents, onePlayerGameEvents, twoPlayerGameEvents);
 
 export function initialGameRooms(app) {
 	const gameRooms = Object.keys(gameCategories);
@@ -41,70 +71,99 @@ export function initialGameRooms(app) {
 			});
 		});
 
-		gameRoom.roomName.on(gameRoomEvents.createTwoPlayerGame, async (ctx, data) => {
-			const game = await Game.findOne({type: data.type, status: 'pending'});
-
-			if(game) {
-				const pendingGame = await joinPendingGame(game, data);
-				ctx.socket.join(pendingGame.room);
-				gameRoom.roomName.to(pendingGame.room).emit(gameRoomEvents.gameStarted, pendingGame);
-			}
-
-			if(!game) {
-				const newGame = await createNewGame(data);
-				ctx.socket.join(data.room);
-				gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameCreated, newGame);
-			}
+		gameRoom.roomName.on(gameRoomEvents.leaveRoom, ctx => {
+			console.log('someone left the room');
+			ctx.socket.disconnect();
 		});
 
-		gameRoom.roomName.on(gameRoomEvents.gameCreatedSuccess, (ctx, data) => {
-			console.log(`game room ${data.room} created by ${data.players[0].userName}`);
-		});
-
-		gameRoom.roomName.on(gameRoomEvents.gameStartedSuccess, (ctx, data) => {
-			console.log(`game room ${data.room} joined by ${data.players[1].userName}`);
-		});
-
-		gameRoom.roomName.on(gameRoomEvents.cancelTwoPlayerGame, async (ctx, data) => {
-			await Game.findByIdAndRemove(data.id);
-			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameCanceled, {
-				userName: data.userName,
-				message: gameRoomEvents.gameCanceled,
-				createdOn: new Date()
-			});
-			ctx.socket.leave(data.room);
-		});
-
-		gameRoom.roomName.on(gameRoomEvents.leaveRoom, async (ctx, data) => {
-			await Game.findByIdAndRemove(data.id);
-			gameRoom.roomName.to(data.room).emit(gameRoomEvents.gameEnded, {
-				userName: data.userName,
-				message: `${data.userName} left the game`,
-				createdOn: new Date()
-			});
-			ctx.socket.leave(data.room);
-			gameRoom.roomName.broadcast(gameRoomEvents.message, {
-				message: `${ctx.data} left the room.`,
-				userName: 'dev-bot',
-				createdOn: new Date()
-			});
-		});
-
-		gameRoom.roomName.on(gameRoomEvents.disconnect, ctx => {
-			console.log('disconnect called');
-			console.log('user has left the room ' + ctx.data);
-		});
+		onePlayerGameEventHandlers(gameRoom);
+		twoPlayerGameEventHandlers(gameRoom);
 	});
+}
+
+function onePlayerGameEventHandlers(gameRoom) {
+	gameRoom.roomName.on(gameRoomEvents.createOnePlayerGame, async (ctx, data) => {
+		const newGame = await createNewGame(data);
+		ctx.socket.join(data.room);
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.onePlayerGameCreated, newGame);
+	});
+
+	gameRoom.roomName.on(gameRoomEvents.onePlayerGameCreatedSuccess, (ctx, data) => {
+		console.log(`One player game ${data.room} created by ${data.players[0].userName}`);
+	});
+
+	gameRoom.roomName.on(gameRoomEvents.cancelOnePlayerGame, async (ctx, data) => {
+		await cancelGameInProgress(data);
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.onePlayerGameCanceled, {
+			userName: data.userName,
+			message: gameRoomEvents.onePlayerGameCanceled,
+			createdOn: new Date()
+		});
+		ctx.socket.disconnect();
+	});
+}
+
+function twoPlayerGameEventHandlers(gameRoom) {
+	gameRoom.roomName.on(gameRoomEvents.createTwoPlayerGame, async (ctx, data) => {
+		const game = await Game.findOne({type: data.type, status: gameStatus.pending});
+
+		if(game) {
+			const pendingGame = await joinPendingGame(game, data);
+			ctx.socket.join(pendingGame.room);
+			gameRoom.roomName.to(pendingGame.room).emit(gameRoomEvents.twoPlayerGameStarted, pendingGame);
+		}
+
+		if(!game) {
+			const newGame = await createNewGame(data);
+			ctx.socket.join(data.room);
+			gameRoom.roomName.to(data.room).emit(gameRoomEvents.twoPlayerGameCreated, newGame);
+		}
+	});
+
+	gameRoom.roomName.on(gameRoomEvents.twoPlayerGameCreatedSuccess, (ctx, data) => {
+		console.log(`Two player game ${data.room} created by ${data.players[0].userName}`);
+	});
+
+	gameRoom.roomName.on(gameRoomEvents.twoPlayerGameStartedSuccess, (ctx, data) => {
+		console.log(`Two player game ${data.room} joined by ${data.players[1].userName}`);
+	});
+
+	gameRoom.roomName.on(gameRoomEvents.cancelTwoPlayerGame, async (ctx, data) => {
+		await cancelGameInProgress(data);
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.twoPlayerGameCanceled, {
+			userName: data.userName,
+			message: gameRoomEvents.twoPlayerGameCanceled,
+			createdOn: new Date()
+		});
+		ctx.socket.disconnect();
+	});
+
+	// gameRoom.roomName.on(gameRoomEvents.leaveRoom, async (ctx, data) => {
+	// 	console.log('leave room called');
+	// 	await Game.findByIdAndRemove(data.id);
+	// 	gameRoom.roomName.to(data.room).emit(gameRoomEvents.twoPlayerGameEnded, {
+	// 		userName: data.userName,
+	// 		message: `${data.userName} left the game`,
+	// 		createdOn: new Date()
+	// 	});
+	// 	ctx.socket.leave(data.room);
+	// 	gameRoom.roomName.broadcast(gameRoomEvents.message, {
+	// 		message: `${ctx.data} left the room.`,
+	// 		userName: 'dev-bot',
+	// 		createdOn: new Date()
+	// 	});
+	// });
 }
 
 async function createNewGame(data) {
 	const newGame = new Game({
 		room: data.room,
 		type: data.type,
-		status: 'pending',
+		category: data.category,
+		status: data.category === gameType.twoPlayer ? gameStatus.pending : gameStatus.started,
 		players: []
 	});
-	newGame.players.push({userName: data.userName, status: 'joined'});
+	newGame.players.push({userName: data.userName, status: playerStatus.joined});
 	newGame.save();
 	return newGame;
 }
@@ -114,9 +173,23 @@ async function joinPendingGame(game, data) {
 		let pendingGame = game;
 		pendingGame.players.push({
 			userName: data.userName,
-			status: 'joined',
+			status: playerStatus.joined,
 		});
-		pendingGame.status = 'started';
+		pendingGame.status = gameStatus.started;
 		return await Game.findByIdAndUpdate(pendingGame._id, pendingGame, {new: true});
 	}
+}
+
+async function cancelGameInProgress (data) {
+	return await Game.findById(data.id, (err, doc) => {
+		doc.status = data.status;
+		if (doc.status === gameStatus.cancelled) {
+			doc.players.map(player => {
+				if (player.userName === data.userName) {
+					player.status = playerStatus.cancelled;
+				}
+			});
+		}
+		doc.save();
+	});
 }

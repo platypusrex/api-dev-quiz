@@ -7,14 +7,17 @@ import router from './routes';
 import errorHandler from './middleware/error-handler.middleware';
 import { seedGameCategories } from './seed/game-categories.seed';
 import { seedChatRooms } from './seed/chat.seed';
+import { seedTriviaQuestions } from "./seed/trivia-questions.seed";
 import { initializeChatRooms } from './utils/chat-rooms.util';
 import { initialGameRooms } from './utils/game-rooms.util';
 import { port, dbLocation } from './config';
 
 mongoose.connect(dbLocation);
+mongoose.connection.on('error', console.error);
+
 seedGameCategories();
 seedChatRooms();
-mongoose.connection.on('error', console.error);
+seedTriviaQuestions();
 
 const app = new Koa();
 

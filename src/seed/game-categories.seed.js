@@ -122,7 +122,9 @@ export const gameCategories = {
 	}
 };
 
-export function seedGameCategories() {
+export const gameCategoryKeys = Object.keys(gameCategories);
+
+export async function seedGameCategories() {
 	GameCategories.findOne().remove().exec();
 
 	new GameCategories(gameCategories).save();
