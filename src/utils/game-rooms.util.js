@@ -1,54 +1,7 @@
 import IO from 'koa-socket-2';
 import Game from '../models/game.model';
 import { gameCategories } from '../seed/game-categories.seed';
-
-export const gameStatus = {
-	pending: 'pending',
-	started: 'started',
-	cancelled: 'cancelled',
-	timedOut: 'timedOut'
-};
-
-export const gameType = {
-	onePlayer: 'onePlayer',
-	twoPlayer: 'twoPlayer'
-};
-
-export const playerStatus = {
-	joined: 'joined',
-	cancelled: 'cancelled'
-};
-
-const defaultGameRoomEvents = {
-	connection: 'connection',
-	joinRoom: 'joinRoom',
-	message: 'message',
-	leaveRoom: 'leaveRoom',
-	disconnect: 'disconnect',
-};
-
-const onePlayerGameEvents = {
-	createOnePlayerGame: 'createOnePlayerGame',
-	cancelOnePlayerGame: 'cancelOnePlayerGame',
-	onePlayerGameCreated: 'onePlayerGameCreated',
-	onePlayerGameCreatedSuccess: 'onePlayerGameCreatedSuccess',
-	onePlayerGameCanceled: 'onePlayerGameCanceled',
-	onePlayerGameEnded: 'onePlayerGameEndedSuccess'
-};
-
-const twoPlayerGameEvents = {
-	createTwoPlayerGame: 'createTwoPlayerGame',
-	cancelTwoPlayerGame: 'cancelTwoPlayerGame',
-	twoPlayerGameCreated: 'twoPlayerGameCreated',
-	twoPlayerGameCreatedSuccess: 'twoPlayerGameCreatedSuccess',
-	twoPlayerGameStarted: 'twoPlayerGameStarted',
-	twoPlayerGameStartedSuccess: 'twoPlayerGameStartedSuccess',
-	twoPlayerGameCanceled: 'twoPlayerGameCanceled',
-	twoPlayerGameEnded: 'twoPlayerGameEndedSuccess',
-	leaveTwoPlayerGameRoom: 'leaveTwoPlayerGameRoom'
-};
-
-const gameRoomEvents = Object.assign({}, defaultGameRoomEvents, onePlayerGameEvents, twoPlayerGameEvents);
+import { gameRoomEvents, playerStatus, gameStatus, gameType } from "../constants/game-room.constants";
 
 export function initialGameRooms(app) {
 	const gameRooms = Object.keys(gameCategories);
