@@ -17,6 +17,11 @@ export const playerStatus = {
 	cancelled: 'cancelled'
 };
 
+const gameEvents = {
+	newQuestion: 'newQuestion',
+	newQuestionSuccess: 'newQuestionSuccess'
+};
+
 const onePlayerGameEvents = {
 	createOnePlayerGame: 'createOnePlayerGame',
 	cancelOnePlayerGame: 'cancelOnePlayerGame',
@@ -38,4 +43,5 @@ const twoPlayerGameEvents = {
 	leaveTwoPlayerGameRoom: 'leaveTwoPlayerGameRoom'
 };
 
-export const gameRoomEvents = Object.assign({}, defaultSocketEvents, onePlayerGameEvents, twoPlayerGameEvents);
+export const gameRoomEvents =
+	Object.assign({}, defaultSocketEvents, onePlayerGameEvents, twoPlayerGameEvents, gameEvents);
