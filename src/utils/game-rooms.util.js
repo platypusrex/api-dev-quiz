@@ -1,5 +1,6 @@
 import IO from 'koa-socket-2';
 import Game from '../models/game.model';
+import Question from '../models/question.model';
 import { gameCategories } from '../seed/game-categories.seed';
 import { gameRoomEvents, playerStatus, gameStatus, gameType } from "../constants/game-room.constants";
 
@@ -31,6 +32,7 @@ export function initialGameRooms(app) {
 
 		onePlayerGameEventHandlers(gameRoom);
 		twoPlayerGameEventHandlers(gameRoom);
+		gameEventsHandlers(gameRoom);
 	});
 }
 
@@ -106,6 +108,18 @@ function twoPlayerGameEventHandlers(gameRoom) {
 	// 		createdOn: new Date()
 	// 	});
 	// });
+}
+
+// _id: {$ne: data.id}}
+
+function gameEventsHandlers(gameRoom) {
+	gameRoom.roomName.on(gameRoomEvents.newQuestion, async (ctx, data) => {
+		const count = await Question.count();
+		const random = Math.floor(Math.random() * count);
+		const question = await Question.findOne({category: data.category, _id: {$ne: data.id}}).skip(random);
+		console.log('question', question);
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.newQuestionSuccess, question);
+	});
 }
 
 async function createNewGame(data) {
