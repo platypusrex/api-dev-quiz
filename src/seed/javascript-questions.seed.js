@@ -108,7 +108,7 @@ export const javascriptQuestions = [
 			'Invocation Expression',
 			'Constructor Calling Expression'
 		],
-		answer: 'minimize storage requirements on the web server',
+		answer: 'Object Creation Expression',
 		category: gameCategories.javascript.type
 	},
 	{
