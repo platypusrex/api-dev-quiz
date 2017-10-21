@@ -110,15 +110,23 @@ function twoPlayerGameEventHandlers(gameRoom) {
 	// });
 }
 
-// _id: {$ne: data.id}}
-
 function gameEventsHandlers(gameRoom) {
 	gameRoom.roomName.on(gameRoomEvents.newQuestion, async (ctx, data) => {
-		const count = await Question.count();
-		const random = Math.floor(Math.random() * count);
-		const question = await Question.findOne({category: data.category, _id: {$ne: data.id}}).skip(random);
-		console.log('question', question);
-		gameRoom.roomName.to(data.room).emit(gameRoomEvents.newQuestionSuccess, question);
+		//const count = await Question.count();
+		//const random = Math.floor(Math.random() * (count - 1));
+		//const test = await Question.find({category: data.category, _id: {$ne: data.id}}).limit(1);
+		//const question = await Question.findOne({category: data.category, _id: {$ne: data.id}}).skip(random);
+		const test = await Question.aggregate().sample(8);
+		console.log('question set', test);
+		console.log('questions length', test.length);
+
+		// const questions = await Question.find({category: data.category});
+		// const filteredQuestions = questions.filter(question => {
+		// 	return (data.questionIds.findIndex(id => id.toString() === question._id.toString()) === -1);
+		// });
+		// const random = Math.floor(Math.random() * (filteredQuestions.length - 1));
+
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.newQuestionSuccess, test);
 	});
 }
 
