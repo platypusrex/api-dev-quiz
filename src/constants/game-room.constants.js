@@ -18,8 +18,8 @@ export const playerStatus = {
 };
 
 const gameEvents = {
-	newQuestion: 'newQuestion',
-	newQuestionSuccess: 'newQuestionSuccess'
+	getQuestions: 'getQuestions',
+	getQuestionsSuccess: 'getQuestionsSuccess'
 };
 
 const onePlayerGameEvents = {
