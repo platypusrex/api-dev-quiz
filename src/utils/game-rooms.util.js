@@ -92,41 +92,12 @@ function twoPlayerGameEventHandlers(gameRoom) {
 		});
 		ctx.socket.disconnect();
 	});
-
-	// gameRoom.roomName.on(gameRoomEvents.leaveRoom, async (ctx, data) => {
-	// 	console.log('leave room called');
-	// 	await Game.findByIdAndRemove(data.id);
-	// 	gameRoom.roomName.to(data.room).emit(gameRoomEvents.twoPlayerGameEnded, {
-	// 		userName: data.userName,
-	// 		message: `${data.userName} left the game`,
-	// 		createdOn: new Date()
-	// 	});
-	// 	ctx.socket.leave(data.room);
-	// 	gameRoom.roomName.broadcast(gameRoomEvents.message, {
-	// 		message: `${ctx.data} left the room.`,
-	// 		userName: 'dev-bot',
-	// 		createdOn: new Date()
-	// 	});
-	// });
 }
 
 function gameEventsHandlers(gameRoom) {
-	gameRoom.roomName.on(gameRoomEvents.newQuestion, async (ctx, data) => {
-		//const count = await Question.count();
-		//const random = Math.floor(Math.random() * (count - 1));
-		//const test = await Question.find({category: data.category, _id: {$ne: data.id}}).limit(1);
-		//const question = await Question.findOne({category: data.category, _id: {$ne: data.id}}).skip(random);
+	gameRoom.roomName.on(gameRoomEvents.getQuestions, async (ctx, data) => {
 		const test = await Question.aggregate().sample(8);
-		console.log('question set', test);
-		console.log('questions length', test.length);
-
-		// const questions = await Question.find({category: data.category});
-		// const filteredQuestions = questions.filter(question => {
-		// 	return (data.questionIds.findIndex(id => id.toString() === question._id.toString()) === -1);
-		// });
-		// const random = Math.floor(Math.random() * (filteredQuestions.length - 1));
-
-		gameRoom.roomName.to(data.room).emit(gameRoomEvents.newQuestionSuccess, test);
+		gameRoom.roomName.to(data.room).emit(gameRoomEvents.getQuestionsSuccess, test);
 	});
 }
 
